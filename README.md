@@ -1,6 +1,8 @@
 # Microcap Program
 
-A self-contained framework to track **microcap trade recommendations, fills, reconciliations, and performance vs benchmarks**.
+This project builds upon and extends the excellent work from the original **[microcap-tracker](https://github.com/bel52/microcap-tracker)** repository.  
+The upstream project provided the foundation for logging trade recommendations, fills, reconciliations, and equity-vs-benchmark charting.  
+This repo reorganizes into a single-tree layout, adds a unified runbook, and integrates daily/weekly user instructions.
 
 ---
 
@@ -64,7 +66,16 @@ pip install -r requirements.txt
   ```
   - 2–4 tickers + 1 TOTAL row.
   - Cash Balance = Budget − Σ(Cost Basis).
-- Validate schema & math.
+- **Validation rules**:
+  - Headers must exactly match schema above.
+  - Action = BUY or SELL.
+  - Shares = integer, no fractions.
+  - Stop Loss = explicit price (no %).
+  - TOTAL row required:
+    - `Shares` = sum of all tickers’ shares.
+    - `Cost Basis` = sum of all tickers’ cost basis.
+    - `Cash Balance` = budget left after allocations.
+  - Math must balance: **Cost Basis + Cash Balance = Budget.**
 - Save as `Start Your Own/chatgpt_portfolio_update.csv`.
 - Confirm one post-close run after update.
 - Next day: place orders + stops.
@@ -146,4 +157,3 @@ This repo is the **single source of truth**:
 - Weekly: Deep Research → validated CSV → orders + stops.
 - Daily: Place orders, set stops, log fills, cron reconciles.
 - Outputs: reconciliation CSV, rolling positions, equity-vs-benchmarks chart.
-
