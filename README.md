@@ -27,8 +27,6 @@ microcap-program/
 
 ## ⚙️ Setup
 
-Clone and set up a virtual environment:
-
 ```bash
 git clone git@github.com:bel52/microcap-program.git
 cd microcap-program
@@ -41,82 +39,111 @@ pip install -r requirements.txt
 
 ## 📝 Workflow
 
-1. **Log recommendations** (system output):
-   ```bash
-   ./scripts/trade_tracker.py log-rec --date YYYY-MM-DD TICKER,action,limit,shares[,note]
-   ```
-   Example:
-   ```bash
-   ./scripts/trade_tracker.py log-rec --date today DOUG,buy,2.60,13,daily_pick
-   ```
+### Daily
 
-2. **Log fills** (broker executions):
-   ```bash
-   ./scripts/trade_tracker.py log-fill --date YYYY-MM-DD TICKER,action,shares,avg_price
-   ```
-   Example:
-   ```bash
-   ./scripts/trade_tracker.py log-fill --date today DOUG,buy,13,2.59
-   ```
+- **Pre-open (09:25–10:00 ET):**
+  - Place **limit DAY orders** from the weekly CSV (shares, not dollars).
+  - Prepare **stop-losses** at the prices specified in the CSV.
 
-3. **Reconcile recs vs fills**:
-   ```bash
-   ./scripts/trade_tracker.py reconcile --date YYYY-MM-DD
-   ```
+- **Intraday:**
+  - If a buy fills → set the stop immediately.
+  - If a stop triggers → log the SELL with actual price & shares.
 
-4. **Update positions**:
-   ```bash
-   ./scripts/trade_tracker.py update-positions --date YYYY-MM-DD
-   ```
+- **Post-close (≥16:10 ET):**
+  - Cron runs `daily-run.sh`.
+  - Check the run log (`run-YYYY-MM-DD.log`).
+  - Reconcile fills vs recommendations.
+  - Update positions and generate equity-vs-benchmark chart.
 
-5. **Generate chart vs benchmarks**:
-   ```bash
-   python scripts/chart_equity_vs_bench.py
-   ```
+### Weekly
 
-6. **Or run the daily pipeline** (steps 3–5):
-   ```bash
-   ./scripts/daily-run.sh
-   ```
+- Run Deep Research (separate project).
+- Produce **CSV-only target file** with schema:
+  ```
+  Date,Action,Ticker,Shares,Buy Price,Cost Basis,Stop Loss,Cash Balance
+  ```
+  - 2–4 tickers + 1 TOTAL row.
+  - Cash Balance = Budget − Σ(Cost Basis).
+- Validate schema & math.
+- Save as `Start Your Own/chatgpt_portfolio_update.csv`.
+- Confirm one post-close run after update.
+- Next day: place orders + stops.
+
+---
+
+## 🛠️ Commands
+
+- **Log recommendations**:
+  ```bash
+  ./scripts/trade_tracker.py log-rec --date today TICKER,buy,limit,shares,note
+  ```
+- **Log fills**:
+  ```bash
+  ./scripts/trade_tracker.py log-fill --date today TICKER,buy,shares,avg_price
+  ```
+- **Reconcile**:
+  ```bash
+  ./scripts/trade_tracker.py reconcile --date today
+  ```
+- **Update positions**:
+  ```bash
+  ./scripts/trade_tracker.py update-positions --date today
+  ```
+- **Generate chart**:
+  ```bash
+  python scripts/chart_equity_vs_bench.py
+  ```
+- **Pipeline**:
+  ```bash
+  ./scripts/daily-run.sh
+  ```
 
 ---
 
 ## 📊 Outputs
 
-- `data/reports/recon_YYYY-MM-DD.csv` → reconciliation of recs vs fills  
+- `data/reports/recon_YYYY-MM-DD.csv` → recs vs fills  
 - `data/positions.csv` → current holdings  
-- `data/reports/equity_vs_benchmarks.png` → equity curve vs SPY/IWM/IWC  
+- `data/reports/equity_vs_benchmarks.png` → portfolio vs SPY/IWM/IWC  
 
 ---
 
-## ⏱️ Automation
+## ⏱️ Automation (Cron)
 
-A cron job runs the daily pipeline automatically **Mon–Fri at 16:10 ET**:
+Installed as:
 
 ```cron
 10 16 * * 1-5 cd /home/brett/microcap-program-clean && . .venv/bin/activate && ./scripts/daily-run.sh >> /home/brett/microcap-program-clean/run-$(date +\%F).log 2>&1
 ```
 
-- Runs after market close.
-- Rotates logs daily (`run-YYYY-MM-DD.log`).
+- Runs Mon–Fri at **16:10 ET** (post-close).
+- Logs rotate daily.
+
+---
+
+## ⚠️ Stop-Loss & Execution Guidance
+
+- **Stops are prices, not % levels.** Always enter explicit stop values in CSV.  
+- **Limit orders** only; **no fractional shares**.  
+- **If a stop hits intraday → log SELL immediately** in trade log.  
+- **Partial fills**: log separately or as one averaged entry at day end.  
 
 ---
 
 ## 🔒 Git Ignore Policy
 
-- Virtual environments (`.venv/`, `venv/`, `.env*`)
-- Python caches (`__pycache__/`, `*.pyc`)
-- Data files (`data/**/*.csv`, `data/positions.csv`, reports `.csv`/`.png`)
-- Editor/OS artifacts (`.DS_Store`, `.idea/`, `.vscode/`)
-- Keeps placeholders (`data/.keep`, etc.) so directories exist in git.
+- `.venv/`, `venv/`, `.env*`
+- `__pycache__/`, `*.pyc`
+- Data: `data/**/*.csv`, `data/positions.csv`, `data/reports/*.csv`, `data/reports/*.png`
+- `.DS_Store`, `.idea/`, `.vscode/`
+- Keeps `.keep` placeholders
 
 ---
 
 ## ✅ Summary
 
-This repo is the **single source of truth** for the full microcap program:
-- Research recs in → `data/recs/`
-- Executed fills in → `data/fills/`
-- Automated reconciliation + positions
-- Equity chart vs benchmarks
-- Scheduled daily job for end-of-day reporting
+This repo is the **single source of truth**:
+- Weekly: Deep Research → validated CSV → orders + stops.
+- Daily: Place orders, set stops, log fills, cron reconciles.
+- Outputs: reconciliation CSV, rolling positions, equity-vs-benchmarks chart.
+
