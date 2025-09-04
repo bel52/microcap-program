@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.env
+
+# Data (privacy-first defaults): keep dirs, ignore contents
+data/recs/*.csv
+data/fills/*.csv
+data/positions.csv
+data/reports/*.csv
+data/reports/*.png
+
+# Keep directory placeholders
+!data/.keep
+!data/recs/.keep
+!data/fills/.keep
+!data/reports/.keep

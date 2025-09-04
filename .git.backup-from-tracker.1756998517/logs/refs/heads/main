@@ -1,0 +1,2 @@
+0000000000000000000000000000000000000000 9b5afab3dce377ada269e27ab2ccb9e384a310a8 bel52 <bel52@georgetown.edu> 1756994545 -0400	commit (initial): Init microcap-tracker: recs/fills tracker, reconciliation, charts, README
+9b5afab3dce377ada269e27ab2ccb9e384a310a8 8537cba044f0b1c4c852af2995a862492135131a bel52 <bel52@georgetown.edu> 1756997400 -0400	commit: Add scripts, data placeholders, requirements, docs
