@@ -1,12 +1,22 @@
 # Python
-__pycache__/
+**/__pycache__/
 *.py[cod]
-.venv/
-.env
+*.egg-info/
 
-# Data (privacy-first defaults): keep dirs, ignore contents
-data/recs/*.csv
-data/fills/*.csv
+# Virtual envs (any depth)
+**/.venv/
+venv/
+.env
+.env.*
+
+# OS/editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Data (privacy-first defaults)
+data/**/*.csv
 data/positions.csv
 data/reports/*.csv
 data/reports/*.png
@@ -16,3 +26,6 @@ data/reports/*.png
 !data/recs/.keep
 !data/fills/.keep
 !data/reports/.keep
+
+# Safety: ignore any accidental git backups
+.git.backup-from-tracker.*
